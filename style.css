@@ -1,19 +1,41 @@
 /* Medical theme colors */
 :root {
-    --medical-blue: #2196F3;
-    --medical-mint: #00BFA5;
-    --medical-white: #FAFAFA;
-    --medical-gray: #78909c;
-    --medical-red: #FF5252;
-    --medical-yellow: #FFD740;
-    --medical-purple: #7C4DFF;
-    --medical-green: #00E676;
-    --medical-gradient: linear-gradient(45deg, var(--medical-blue), var(--medical-purple));
-    --medical-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    --medical-glow: 0 0 15px rgba(33,150,243,0.5);
-    --medical-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --primary-blue: #2196F3;
+    --primary-mint: #00BFA5;
+    --primary-white: #FAFAFA;
+    --primary-gray: #78909c;
+    --primary-red: #FF5252;
+    --primary-yellow: #FFD740;
+    --primary-purple: #7C4DFF;
+    --primary-green: #00E676;
+    --colorful-gradient: linear-gradient(45deg, var(--primary-blue), var(--primary-purple), var(--primary-yellow), var(--primary-green));
+    --colorful-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    --colorful-glow: 0 0 15px rgba(33,150,243,0.5);
+    --colorful-transition: all 0.5s ease-in-out;
     /* Animation for smooth transitions */
-    --medical-animation: fadeIn 0.5s ease-in-out;
+    --colorful-animation: fadeIn 0.5s ease-in-out, bounce 1s infinite alternate;
+    /* Animation for time limit */
+    --time-limit-animation: pulse 1s infinite alternate, shake 0.5s infinite;
+    /* Animation for page transitions */
+    --page-transition-animation: slideIn 0.7s ease-in-out, zoomIn 0.7s ease-in-out;
+    /* Loading screen animation */
+    --loading-animation: spin 1s linear infinite, flash 1.5s infinite;
+
+    /* Keyframes for animations */
+    @keyframes pulse {
+        from { transform: scale(1); }
+        to { transform: scale(1.1); }
+    }
+
+    @keyframes slideIn {
+        from { transform: translateX(-100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
 
     /* Quiziz-like styling */
     --quiziz-background: #f0f4f8;
@@ -36,8 +58,8 @@
 
 /* Headers */
 h1, h2, h3 {
-    color: var(--medical-blue);
-    font-family: 'Arial', sans-serif;
+    color: #FFD700; /* Gold color for the text */
+    font-family: 'Comic Sans MS', sans-serif;
 }
 
 /* Question container */
