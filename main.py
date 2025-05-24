@@ -3,6 +3,7 @@ import json
 import time
 import requests
 from streamlit_lottie import st_lottie
+from streamlit.components.v1 import html
 
 # Page configuration
 st.set_page_config(
@@ -12,17 +13,20 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS for futuristic theme
+# Custom CSS for futuristic medical theme
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&family=Roboto+Condensed:wght@400;700&display=swap');
     
     :root {
         --primary: #6EC3F4;
         --secondary: #A2E3C4;
         --accent: #FF7E5F;
+        --accent2: #8A4FFF;
         --dark: #2D3748;
         --light: #F8FAFC;
+        --success: #48BB78;
+        --error: #F56565;
     }
     
     body {
@@ -42,6 +46,7 @@ st.markdown("""
         font-size: 2.5rem;
         margin-bottom: 0.5rem;
         text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        font-family: 'Roboto Condensed', sans-serif;
     }
     
     .subtitle {
@@ -60,6 +65,12 @@ st.markdown("""
         margin-bottom: 2rem;
         position: relative;
         overflow: hidden;
+        transition: all 0.3s ease;
+    }
+    
+    .question-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 40px rgba(31, 135, 229, 0.15);
     }
     
     .question-card::before {
@@ -73,10 +84,11 @@ st.markdown("""
     }
     
     .question-text {
-        font-size: 1.2rem;
+        font-size: 1.3rem;
         font-weight: 600;
         color: var(--dark);
         margin-bottom: 1.5rem;
+        line-height: 1.5;
     }
     
     .stButton>button {
@@ -90,11 +102,16 @@ st.markdown("""
         text-align: left;
         position: relative;
         overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
     }
     
     .stButton>button:hover {
-        transform: translateY(-2px) !important;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+        transform: translateY(-3px) !important;
+        box-shadow: 0 6px 16px rgba(0,0,0,0.15) !important;
+    }
+    
+    .stButton>button:active {
+        transform: translateY(0) !important;
     }
     
     .option-btn-0 {
@@ -113,7 +130,7 @@ st.markdown("""
     }
     
     .option-btn-3 {
-        background: linear-gradient(135deg, #A78BFA 0%, #8B5CF6 100%) !important;
+        background: linear-gradient(135deg, var(--accent2) 0%, #7B3DFF 100%) !important;
         color: white !important;
     }
     
@@ -121,8 +138,15 @@ st.markdown("""
         background: white;
         border-radius: 16px;
         padding: 1.5rem;
-        box-shadow: 0 4px 16px rgba(0,0,0,0.05);
+        box-shadow: 0 4px 24px rgba(0,0,0,0.08);
         margin-bottom: 1.5rem;
+        transition: all 0.3s ease;
+        border: 1px solid rgba(110, 195, 244, 0.2);
+    }
+    
+    .score-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 32px rgba(0,0,0,0.12);
     }
     
     .score-title {
@@ -133,79 +157,127 @@ st.markdown("""
     }
     
     .score-value {
-        font-size: 2rem;
+        font-size: 2.5rem;
         font-weight: 700;
         color: var(--primary);
         margin-bottom: 0;
+        text-align: center;
     }
     
     .leaderboard {
         background: white;
         border-radius: 16px;
         padding: 1.5rem;
-        box-shadow: 0 4px 16px rgba(0,0,0,0.05);
+        box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+        border: 1px solid rgba(110, 195, 244, 0.2);
+    }
+    
+    .leaderboard:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 32px rgba(0,0,0,0.12);
     }
     
     .leaderboard-title {
-        font-size: 1rem;
-        font-weight: 600;
+        font-size: 1.2rem;
+        font-weight: 700;
         color: var(--dark);
-        margin-bottom: 1rem;
+        margin-bottom: 1.5rem;
         text-align: center;
+        font-family: 'Roboto Condensed', sans-serif;
     }
     
     .leaderboard-item {
         display: flex;
         align-items: center;
-        padding: 0.5rem 0;
+        padding: 0.75rem 1rem;
         border-bottom: 1px solid rgba(0,0,0,0.05);
+        transition: all 0.2s ease;
+    }
+    
+    .leaderboard-item:hover {
+        background-color: rgba(110, 195, 244, 0.05);
+        border-radius: 8px;
     }
     
     .leaderboard-pos {
         font-weight: 700;
         margin-right: 1rem;
-        width: 24px;
-        height: 24px;
+        width: 28px;
+        height: 28px;
         display: flex;
         align-items: center;
         justify-content: center;
         border-radius: 50%;
+        font-family: 'Roboto Condensed', sans-serif;
     }
     
     .pos-1 {
-        background: gold;
-        color: white;
+        background: linear-gradient(135deg, gold 0%, #FFD700 100%);
+        color: var(--dark);
     }
     
     .pos-2 {
-        background: silver;
-        color: white;
+        background: linear-gradient(135deg, silver 0%, #C0C0C0 100%);
+        color: var(--dark);
     }
     
     .pos-3 {
-        background: #cd7f32;
+        background: linear-gradient(135deg, #cd7f32 0%, #B87333 100%);
         color: white;
     }
     
-    .timer {
-        width: 60px;
-        height: 60px;
-        border-radius: 50%;
-        background: white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    .timer-container {
+        position: relative;
+        width: 80px;
+        height: 80px;
         margin: 0 auto 1.5rem;
+    }
+    
+    .timer-svg {
+        transform: rotate(-90deg);
+        width: 100%;
+        height: 100%;
+    }
+    
+    .timer-circle {
+        fill: none;
+        stroke: var(--primary);
+        stroke-width: 6;
+        stroke-dasharray: 251;
+        stroke-dashoffset: 0;
+        stroke-linecap: round;
+        transition: stroke-dashoffset 1s linear;
+    }
+    
+    .timer-text {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
         font-weight: 700;
-        font-size: 1.5rem;
+        font-size: 1.8rem;
         color: var(--primary);
-        border: 3px solid var(--primary);
+    }
+    
+    .timer-warning {
+        color: var(--accent);
+    }
+    
+    .timer-critical {
+        color: var(--error);
     }
     
     .correct-answer {
         animation: pulse 0.5s ease;
-        box-shadow: 0 0 0 4px rgba(110, 195, 244, 0.5) !important;
+        box-shadow: 0 0 0 4px rgba(72, 187, 120, 0.5) !important;
+        background: linear-gradient(135deg, var(--success) 0%, #38A169 100%) !important;
+    }
+    
+    .wrong-answer {
+        animation: shake 0.5s ease;
+        box-shadow: 0 0 0 4px rgba(245, 101, 101, 0.5) !important;
+        background: linear-gradient(135deg, var(--error) 0%, #E53E3E 100%) !important;
     }
     
     @keyframes pulse {
@@ -214,30 +286,127 @@ st.markdown("""
         100% { transform: scale(1); }
     }
     
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        20%, 60% { transform: translateX(-5px); }
+        40%, 80% { transform: translateX(5px); }
+    }
+    
     .progress-container {
         width: 100%;
-        height: 8px;
+        height: 10px;
         background: rgba(110, 195, 244, 0.2);
-        border-radius: 4px;
+        border-radius: 5px;
         margin-bottom: 1.5rem;
+        overflow: hidden;
     }
     
     .progress-bar {
         height: 100%;
-        border-radius: 4px;
+        border-radius: 5px;
         background: linear-gradient(90deg, var(--primary), var(--secondary));
-        transition: width 0.3s ease;
+        transition: width 0.5s ease;
+        position: relative;
+    }
+    
+    .progress-bar::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(90deg, 
+            rgba(255,255,255,0.1) 0%, 
+            rgba(255,255,255,0.3) 50%, 
+            rgba(255,255,255,0.1) 100%);
+        background-size: 200% 100%;
+        animation: shimmer 2s infinite;
+    }
+    
+    @keyframes shimmer {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
     }
     
     .stage-indicator {
         display: inline-block;
-        padding: 0.25rem 0.75rem;
-        border-radius: 12px;
-        background: var(--secondary);
-        color: var(--dark);
+        padding: 0.5rem 1.25rem;
+        border-radius: 20px;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: white;
+        font-weight: 700;
+        font-size: 0.9rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 4px 12px rgba(110, 195, 244, 0.3);
+    }
+    
+    .feedback-card {
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        animation: fadeIn 0.5s ease;
         font-weight: 600;
-        font-size: 0.8rem;
-        margin-bottom: 1rem;
+    }
+    
+    .correct-feedback {
+        background: rgba(72, 187, 120, 0.1);
+        border: 1px solid rgba(72, 187, 120, 0.3);
+        color: var(--success);
+    }
+    
+    .wrong-feedback {
+        background: rgba(245, 101, 101, 0.1);
+        border: 1px solid rgba(245, 101, 101, 0.3);
+        color: var(--error);
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .pulse-animation {
+        animation: pulse 2s infinite;
+    }
+    
+    .floating {
+        animation: floating 3s ease-in-out infinite;
+    }
+    
+    @keyframes floating {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+        100% { transform: translateY(0px); }
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .title {
+            font-size: 2rem;
+        }
+        
+        .question-text {
+            font-size: 1.1rem;
+        }
+        
+        .stButton>button {
+            padding: 0.6rem 1rem !important;
+            font-size: 0.9rem !important;
+        }
+        
+        .score-value {
+            font-size: 2rem;
+        }
+        
+        .timer-container {
+            width: 60px;
+            height: 60px;
+        }
+        
+        .timer-text {
+            font-size: 1.5rem;
+        }
     }
 </style>
 """, unsafe_allow_html=True)
@@ -283,6 +452,8 @@ lottie_wrong = load_lottie_url("https://assets1.lottiefiles.com/packages/lf20_x1
 lottie_transition = load_lottie_url("https://assets10.lottiefiles.com/packages/lf20_x62chJ.json") # Stage transition
 lottie_win = load_lottie_url("https://assets2.lottiefiles.com/packages/lf20_jimqos21.json")       # Win animation
 lottie_medical = load_lottie_url("https://assets5.lottiefiles.com/packages/lf20_0yfsb3a1.json")   # Medical equipment
+lottie_heartbeat = load_lottie_url("https://assets1.lottiefiles.com/packages/lf20_5tkzkblw.json") # Heartbeat animation
+lottie_pills = load_lottie_url("https://assets1.lottiefiles.com/packages/lf20_0fhjvtpi.json")     # Pills animation
 
 # Mock leaderboard data
 leaderboard_data = [
@@ -316,6 +487,8 @@ if st.session_state.player_name is None:
     with col2:
         if lottie_welcome:
             st_lottie(lottie_welcome, height=350, key="welcome")
+        if lottie_heartbeat:
+            st_lottie(lottie_heartbeat, height=200, key="heartbeat")
 
 else:
     # Game interface for logged-in player
@@ -382,7 +555,7 @@ else:
                         if lottie_correct:
                             st_lottie(lottie_correct, height=150, key="correct")
                     else:
-                        st.markdown(f'<div class="stButton"><button class="{button_class}">✗ Wrong</button></div>', unsafe_allow_html=True)
+                        st.markdown(f'<div class="stButton"><button class="{button_class} wrong-answer">✗ Wrong</button></div>', unsafe_allow_html=True)
                         if lottie_wrong:
                             st_lottie(lottie_wrong, height=150, key="wrong")
                         correct_answer = current_question["options"][current_question["correct_answer"]]
@@ -394,8 +567,16 @@ else:
                     st.rerun()
     
     with col2:
-        # Timer
-        st.markdown('<div class="timer" id="timer">30</div>', unsafe_allow_html=True)
+        # Timer with circular progress
+        st.markdown("""
+        <div class="timer-container">
+            <svg class="timer-svg" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="40" class="timer-circle" 
+                    style="stroke-dashoffset: calc(251 - (251 * var(--percentage))"></circle>
+            </svg>
+            <div class="timer-text" id="timer-text">30</div>
+        </div>
+        """, unsafe_allow_html=True)
         
         # Score card
         st.markdown('<div class="score-card"><div class="score-title">YOUR SCORE</div><div class="score-value">{}</div></div>'.format(st.session_state.score), unsafe_allow_html=True)
@@ -415,23 +596,38 @@ else:
         
         st.markdown('</div>', unsafe_allow_html=True)  # Close leaderboard div
         
-        # Medical animation
+        # Medical animations
         if lottie_medical:
             st_lottie(lottie_medical, height=150, key="medical")
+        if lottie_pills:
+            st_lottie(lottie_pills, height=120, key="pills")
 
-# JavaScript for timer
+# JavaScript for timer with circular progress
 timer_script = """
 <script>
     let timeLeft = 30;
-    const timerElement = document.getElementById('timer');
+    const timerText = document.getElementById('timer-text');
+    const timerCircle = document.querySelector('.timer-circle');
+    const totalTime = 30;
     
     function updateTimer() {
         timeLeft--;
-        timerElement.textContent = timeLeft;
+        timerText.textContent = timeLeft;
         
+        // Update circle progress
+        const percentage = timeLeft / totalTime;
+        timerCircle.style.setProperty('--percentage', percentage);
+        
+        // Visual feedback when time is running out
         if (timeLeft <= 10) {
-            timerElement.style.color = '#FF7E5F';
-            timerElement.style.borderColor = '#FF7E5F';
+            timerText.classList.add('timer-warning');
+            timerCircle.style.stroke = '#FF7E5F';
+        }
+        
+        if (timeLeft <= 5) {
+            timerText.classList.remove('timer-warning');
+            timerText.classList.add('timer-critical');
+            timerCircle.style.stroke = '#F56565';
         }
         
         if (timeLeft <= 0) {
